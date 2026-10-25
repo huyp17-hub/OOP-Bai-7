@@ -1,0 +1,130 @@
+
+------------------------------------------------------------
+TEST 1: Thêm thiết bị vào repository
+------------------------------------------------------------
+   Máy chiếu:
+     - ProjectorRemote[PR01] "Remote máy chiếu Epson" @Tủ A - Ngăn 1 | Available | Pin=85%
+     - ProjectorRemote[PR02] "Remote máy chiếu Sony" @Tủ A - Ngăn 2 | Available | Pin=15%
+     - ProjectorRemote[PR03] "Remote máy chiếu Panasonic" @Tủ A - Ngăn 3 | Available | Pin=60%
+   Điều hòa:
+     - AirConditionerRemote[AC01] "Remote điều hòa Daikin" @Tủ B - Ngăn 1 | Available | Phòng=A201,A202,A203
+     - AirConditionerRemote[AC02] "Remote điều hòa LG" @Tủ B - Ngăn 2 | Available | Phòng=B101,B102
+   Micro:
+     - WirelessMicrophone[MC01] "Micro Shure 1" @Tủ C - Ngăn 1 | Available | Pin=25% TínHiệu=90%
+     - WirelessMicrophone[MC02] "Micro Shure 2" @Tủ C - Ngăn 2 | Available | Pin=80% TínHiệu=70%
+     - WirelessMicrophone[MC03] "Micro Sennheiser" @Tủ C - Ngăn 3 | Available | Pin=95% TínHiệu=85%
+   [PASS] Repo máy chiếu có 3, điều hòa có 2, micro có 3
+
+------------------------------------------------------------
+TEST 2: Thêm hai thiết bị trùng mã
+------------------------------------------------------------
+   Bắt được DuplicateIdException: Đã tồn tại phần tử có mã 'PR01'.
+   DuplicateId = PR01
+   [PASS] Thêm PR01 lần 2 -> DuplicateIdException
+   Bắt được DuplicateIdException: Đã tồn tại phần tử có mã 'pr01'.
+   [PASS] Thêm 'pr01' (khác hoa thường) -> vẫn bị coi là trùng
+   Bắt được ArgumentNullException: Không chấp nhận phần tử null. (Parameter 'item')
+   [PASS] Thêm null -> ArgumentNullException
+   [PASS] Số lượng vẫn là 3 sau các lần thêm lỗi
+
+------------------------------------------------------------
+TEST 3: Tìm thiết bị theo mã
+------------------------------------------------------------
+   FindById("MC03") -> WirelessMicrophone[MC03] "Micro Sennheiser" @Tủ C - Ngăn 3 | Available | Pin=95% TínHiệu=85%
+   [PASS] Tìm thấy MC03
+   [PASS] FindById("XX99") trả về null
+   [PASS] Remove("XX99") trả về false
+
+------------------------------------------------------------
+TEST 4: Lọc các thiết bị sẵn sàng
+------------------------------------------------------------
+   Máy chiếu sẵn sàng:
+     - ProjectorRemote[PR01] "Remote máy chiếu Epson" @Tủ A - Ngăn 1 | Available | Pin=85%
+     - ProjectorRemote[PR03] "Remote máy chiếu Panasonic" @Tủ A - Ngăn 3 | Available | Pin=60%
+   Micro sẵn sàng:
+     - WirelessMicrophone[MC02] "Micro Shure 2" @Tủ C - Ngăn 2 | Available | Pin=80% TínHiệu=70%
+     - WirelessMicrophone[MC03] "Micro Sennheiser" @Tủ C - Ngăn 3 | Available | Pin=95% TínHiệu=85%
+   [PASS] PR02 (pin 15%) bị loại, còn PR01, PR03
+   [PASS] MC01 (pin 25%) bị loại, còn MC02, MC03
+   [PASS] GetAll() trả về danh sách chỉ đọc
+
+------------------------------------------------------------
+TEST 5: Chọn điều khiển máy chiếu có điểm cao nhất
+------------------------------------------------------------
+   Được chọn: ProjectorRemote[PR01] "Remote máy chiếu Epson" @Tủ A - Ngăn 1 | Borrowed | Pin=85%
+   [PASS] Chọn PR01 (pin 85% cao nhất trong các thiết bị sẵn sàng)
+
+------------------------------------------------------------
+TEST 6: Chọn điều khiển điều hòa tương thích với phòng A203
+------------------------------------------------------------
+   Được chọn: AirConditionerRemote[AC01] "Remote điều hòa Daikin" @Tủ B - Ngăn 1 | Borrowed | Phòng=A201,A202,A203
+   [PASS] Chọn AC01 (tương thích A203)
+   Phòng B102 -> AC02
+   [PASS] Phòng B102 -> AC02
+
+------------------------------------------------------------
+TEST 7: Chọn micro đầu tiên sẵn sàng
+------------------------------------------------------------
+   Được chọn: WirelessMicrophone[MC02] "Micro Shure 2" @Tủ C - Ngăn 2 | Borrowed | Pin=80% TínHiệu=70%
+   [PASS] Chọn MC02 (MC01 không sẵn sàng nên bị bỏ qua)
+
+------------------------------------------------------------
+TEST 8: Đổi chiến lược trong thời gian chạy
+------------------------------------------------------------
+   Ứng viên micro:
+     - WirelessMicrophone[MC02] "Micro Shure 2" @Tủ C - Ngăn 2 | Available | Pin=80% TínHiệu=70%
+     - WirelessMicrophone[MC03] "Micro Sennheiser" @Tủ C - Ngăn 3 | Available | Pin=95% TínHiệu=85%
+   Điểm MC02 = 75
+   Điểm MC03 = 90
+   Chiến lược FirstAvailableStrategy -> MC02
+   Chiến lược HighestPriorityStrategy -> MC03
+   [PASS] FirstAvailable chọn MC02, HighestPriority chọn MC03
+   [PASS] Chiến lược không thay đổi danh sách đầu vào
+   Chiến lược 'tín hiệu cao nhất' -> MC02
+   [PASS] Còn MC02 là ứng viên duy nhất -> chọn MC02
+
+------------------------------------------------------------
+TEST 9: Cấp phát khi không có ứng viên phù hợp
+------------------------------------------------------------
+   Bắt được NoSuitableItemException: Không có thiết bị AirConditionerRemote nào sẵn sàng và thỏa điều kiện.
+   [PASS] Điều hòa cho phòng C999 -> NoSuitableItemException
+   Bắt được NoSuitableItemException: Không có thiết bị WirelessMicrophone nào sẵn sàng và thỏa điều kiện.
+   [PASS] Hết micro sẵn sàng -> NoSuitableItemException
+   Bắt được NoSuitableItemException: FirstAvailableStrategy: danh sách ứng viên rỗng.
+   [PASS] Strategy.Select(danh sách rỗng) -> NoSuitableItemException
+
+------------------------------------------------------------
+TEST 10: Thiết bị được chọn chuyển sang Borrowed
+------------------------------------------------------------
+   PR01: Borrowed, AC01: Borrowed, MC03: Borrowed
+   [PASS] PR01, AC01, MC03 có trạng thái Borrowed
+   Bắt được DeviceNotReadyException: Thiết bị 'PR01' chưa sẵn sàng để cấp phát (trạng thái: Borrowed).
+   DeviceId=PR01, CurrentStatus=Borrowed
+   [PASS] Mượn lại PR01 đang Borrowed -> DeviceNotReadyException
+   [PASS] Trả PR01 -> Available
+   Bắt được DeviceNotReadyException: Không thể trả thiết bị 'PR03' vì nó không ở trạng thái Borrowed (hiện tại: Available).
+   [PASS] Trả PR03 khi chưa mượn -> DeviceNotReadyException
+
+------------------------------------------------------------
+TEST 11: Repository & service generic dùng cho nhiều loại thiết bị
+------------------------------------------------------------
+   Repository<ProjectorRemote>: tổng=3, sẵn sàng=2, đang mượn=0
+   Repository<AirConditionerRemote>: tổng=2, sẵn sàng=0, đang mượn=2
+   Repository<WirelessMicrophone>: tổng=3, sẵn sàng=0, đang mượn=2
+   Repository<InteractiveDisplayRemote>: tổng=3, sẵn sàng=1, đang mượn=1
+   Được chọn: InteractiveDisplayRemote[ID02] "Remote màn hình tương tác 2" @Tủ D | Borrowed
+   [PASS] ID02 (65 + 10 cảm ứng = 75) thắng ID01 (70); ID03 chưa ghép nối bị loại
+   Kho tổng hợp (gọi đa hình IsReadyForUse / GetDefaultPriorityScore):
+     PR01  ProjectorRemote        ready=True  score=85
+     PR02  ProjectorRemote        ready=False score=15
+     PR03  ProjectorRemote        ready=True  score=60
+     AC01  AirConditionerRemote   ready=False score=100
+     AC02  AirConditionerRemote   ready=False score=100
+     MC01  WirelessMicrophone     ready=False score=57.5
+     MC02  WirelessMicrophone     ready=False score=75
+     MC03  WirelessMicrophone     ready=False score=90
+   [PASS] Repository<TeachingDevice> chứa 8 thiết bị thuộc 3 loại
+
+============================================================
+TỔNG KẾT: 27 PASS, 0 FAIL
+============================================================
