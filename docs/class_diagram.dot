@@ -1,0 +1,41 @@
+digraph G {
+  rankdir=BT; nodesep=0.35; ranksep=0.6;
+  node [shape=record, fontname="DejaVu Sans", fontsize=10, style=filled, fillcolor="#FFFFFF"];
+  edge [fontname="DejaVu Sans", fontsize=9];
+
+  IIdentifiable [label="{«interface»\nIIdentifiable|+ Id : string}", fillcolor="#E8F0FE"];
+  DeviceStatus [label="{«enum»\nDeviceStatus|Available\lBorrowed\lUnderMaintenance\l}", fillcolor="#F1F3F4"];
+  TeachingDevice [label="{«abstract»\nTeachingDevice|+ Id, Name, StorageLocation : string\l+ Status : DeviceStatus\l|+ IsReadyForUse() : bool  «abstract»\l+ GetDefaultPriorityScore() : double  «abstract»\l+ Borrow()\l+ Return()\l}", fillcolor="#FEF7E0"];
+  ProjectorRemote [label="{ProjectorRemote|+ BatteryLevel : int|+ IsReadyForUse()\l+ GetDefaultPriorityScore()\l}"];
+  AirConditionerRemote [label="{AirConditionerRemote|+ CompatibleRooms : IReadOnlySet\<string\>\l|+ IsCompatibleWith(roomId) : bool\l+ IsReadyForUse()\l+ GetDefaultPriorityScore()\l}"];
+  WirelessMicrophone [label="{WirelessMicrophone|+ BatteryLevel : int\l+ SignalQuality : int\l|+ IsReadyForUse()\l+ GetDefaultPriorityScore()\l}"];
+  InteractiveDisplayRemote [label="{InteractiveDisplayRemote\n(lớp mở rộng)|+ BatteryLevel, IsPaired, SupportsTouch|+ IsReadyForUse()\l+ GetDefaultPriorityScore()\l}", fillcolor="#E6F4EA"];
+
+  IRepository [label="{«interface»\nIRepository\<T\>\nwhere T : IIdentifiable|+ Add(T)\l+ Remove(id) : bool\l+ FindById(id) : T?\l+ GetAll() : IReadOnlyList\<T\>\l+ FindAll(Predicate\<T\>)\l}", fillcolor="#E8F0FE"];
+  InMemoryRepository [label="{InMemoryRepository\<T\>|- itemsById : Dictionary\<string,T\>\l- insertionOrder : List\<string\>\l}"];
+
+  ISelectionStrategy [label="{«interface»\nISelectionStrategy\<T\>|+ Select(IReadOnlyList\<T\>) : T\l}", fillcolor="#E8F0FE"];
+  HighestPriorityStrategy [label="{HighestPriorityStrategy\<T\>|- scoreSelector : Func\<T,double\>\l|+ Select(...)\l}"];
+  FirstAvailableStrategy [label="{FirstAvailableStrategy\<T\>|+ Select(...)\l}"];
+
+  AllocationService [label="{AllocationService\<T\>\nwhere T : TeachingDevice|- repository : IRepository\<T\>\l- strategy : ISelectionStrategy\<T\>\l|+ ChangeStrategy(ISelectionStrategy\<T\>)\l+ Allocate(Predicate\<T\>) : T\l+ ReturnDevice(id) : T\l}", fillcolor="#FCE8E6"];
+
+  Exc [label="{«exceptions»|DeviceAllocationException (abstract)\l  ├ DuplicateIdException\l  ├ NoSuitableItemException\l  └ DeviceNotReadyException\l}", fillcolor="#F1F3F4"];
+
+  TeachingDevice -> IIdentifiable [arrowhead=empty, style=dashed];
+  ProjectorRemote -> TeachingDevice [arrowhead=empty];
+  AirConditionerRemote -> TeachingDevice [arrowhead=empty];
+  WirelessMicrophone -> TeachingDevice [arrowhead=empty];
+  InteractiveDisplayRemote -> TeachingDevice [arrowhead=empty];
+  TeachingDevice -> DeviceStatus [arrowhead=vee, label=" dùng"];
+
+  InMemoryRepository -> IRepository [arrowhead=empty, style=dashed];
+  IRepository -> IIdentifiable [arrowhead=vee, style=dotted, label=" T : "];
+  HighestPriorityStrategy -> ISelectionStrategy [arrowhead=empty, style=dashed];
+  FirstAvailableStrategy -> ISelectionStrategy [arrowhead=empty, style=dashed];
+
+  AllocationService -> IRepository [arrowtail=odiamond, dir=back, label=" 1"];
+  AllocationService -> ISelectionStrategy [arrowtail=odiamond, dir=back, label=" 1"];
+  AllocationService -> TeachingDevice [arrowhead=vee, style=dotted, label=" T : "];
+  AllocationService -> Exc [arrowhead=vee, style=dashed, label=" throws"];
+}

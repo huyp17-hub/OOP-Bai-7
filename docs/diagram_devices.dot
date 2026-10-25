@@ -1,0 +1,19 @@
+digraph G {
+  rankdir=BT; nodesep=0.35; ranksep=0.6;
+  node [shape=record, fontname="DejaVu Sans", fontsize=10, style=filled, fillcolor="#FFFFFF"];
+  edge [fontname="DejaVu Sans", fontsize=9];
+
+    IIdentifiable [label="{«interface»\nIIdentifiable|+ Id : string}", fillcolor="#E8F0FE"];
+  DeviceStatus [label="{«enum»\nDeviceStatus|Available\lBorrowed\lUnderMaintenance\l}", fillcolor="#F1F3F4"];
+  TeachingDevice [label="{«abstract»\nTeachingDevice|+ Id, Name, StorageLocation : string\l+ Status : DeviceStatus\l|+ IsReadyForUse() : bool  «abstract»\l+ GetDefaultPriorityScore() : double  «abstract»\l+ Borrow()\l+ Return()\l}", fillcolor="#FEF7E0"];
+  ProjectorRemote [label="{ProjectorRemote|+ BatteryLevel : int|+ IsReadyForUse()\l+ GetDefaultPriorityScore()\l}"];
+  AirConditionerRemote [label="{AirConditionerRemote|+ CompatibleRooms : IReadOnlySet\<string\>\l|+ IsCompatibleWith(roomId) : bool\l+ IsReadyForUse()\l+ GetDefaultPriorityScore()\l}"];
+  WirelessMicrophone [label="{WirelessMicrophone|+ BatteryLevel : int\l+ SignalQuality : int\l|+ IsReadyForUse()\l+ GetDefaultPriorityScore()\l}"];
+  InteractiveDisplayRemote [label="{InteractiveDisplayRemote\n(lớp mở rộng)|+ BatteryLevel, IsPaired, SupportsTouch|+ IsReadyForUse()\l+ GetDefaultPriorityScore()\l}", fillcolor="#E6F4EA"];
+  TeachingDevice -> IIdentifiable [arrowhead=empty, style=dashed];
+  ProjectorRemote -> TeachingDevice [arrowhead=empty];
+  AirConditionerRemote -> TeachingDevice [arrowhead=empty];
+  WirelessMicrophone -> TeachingDevice [arrowhead=empty];
+  InteractiveDisplayRemote -> TeachingDevice [arrowhead=empty];
+  TeachingDevice -> DeviceStatus [arrowhead=vee, label=" dùng"];
+}
